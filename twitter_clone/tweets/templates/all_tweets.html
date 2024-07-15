@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+    <head><title>TWEETS</title></head>
+    <body>
+        {% for tweet in mytweets %}
+            <div>
+                <h3>{{ tweet.tweet }}</h3>
+                <p>{{ tweet.likes }}</p>
+            </div>
+        {% endfor %}
+    </body>
+</html>
