@@ -6,3 +6,6 @@ class User(models.Model):
     email = models.EmailField(max_length=255, null=True)
     username = models.CharField(null=True, max_length=254)
     joined_date = models.DateField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return self.username
