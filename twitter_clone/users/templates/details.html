@@ -10,12 +10,13 @@
 
     <p>email: {{ myuser.email }}</p>
     <p>Joined since: {{ myuser.joined_date }}</p>
-    
+
     {% if user_tweets %}
         <h1>-------------Tweets------------</h1>
         <div>
             {% for tweet in user_tweets %}
                 <h2>{{ tweet.tweet }}</h2>
+                <h4>Likes: {{ tweet_likes[3] }}</h4>
             {% endfor %}
         </div>
     {% endif %}
