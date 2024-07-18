@@ -16,30 +16,38 @@ def users(request):
 
     return HttpResponse(template.render(context, request))
 
-def details(request, id):
-    myuser = User.objects.get(id=id)
-    tweets = Tweet.objects.all()
-    likes = Like.objects.all()
-
-    user_tweets = []
+def details(request, user_id):
+    myuser = User.objects.get(id=user_id)
+    tweets = Tweet.objects.filter(user_id=myuser.id)
+    
     tweet_likes = {}
-
     for tweet in tweets:
-        if tweet.user_id == id:
-            user_tweets.append(tweet)
-            tweet_likes[tweet.id] = 0
-            for like in likes:
-                if like.tweet_id == tweet.id:
-                    tweet_likes[tweet.id] += 1
-                    tweet_id = tweet.id
+        tweet_likes[tweet.id] = Like.objects.filter(tweet_id=tweet.id).count()
 
     template = loader.get_template('details.html')
-    print(tweet_likes)
+    
     context = {
         'myuser': myuser,
-        'user_tweets': user_tweets,
+        'tweets': tweets,
         'tweet_likes': tweet_likes,
-        'tweet_id': tweet_id,
+    }
+
+    return HttpResponse(template.render(context, request))
+
+def liked(request, user_id, object_id):
+    myusers = User.objects.all().values()
+    likes = Like.objects.filter(tweet_id=object_id).values()
+
+    template = loader.get_template('liked.html')
+    users_liked_id = [x['user_id'] for x in likes]
+
+    users_liked_list = [user for user in myusers if user['id'] in users_liked_id]
+
+    print(users_liked_list)
+    
+    context = {
+        'users_liked_list': users_liked_list,
+        'user_id': user_id,
     }
 
     return HttpResponse(template.render(context, request))
