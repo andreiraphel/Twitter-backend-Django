@@ -1,0 +1,15 @@
+{% extends "master.html" %}
+
+{% block title %}
+    Likes
+{% endblock %}
+
+{% block content %}
+    <p><a href="/users/details/{{ user_id }}">Back</a></p>
+
+    {% for user in users_liked_list %}
+        <ul>
+            <li>{{ user.firstname }} {{ user.lastname }}</li>
+        </ul>
+    {% endfor %}
+{% endblock%}
