@@ -1,0 +1,15 @@
+{% extends "master.html" %}
+
+{% block title %}
+    Comments
+{% endblock %}
+
+{% block content %}
+    <p><a href="/users/details/{{ user_id }}">Back</a></p>
+
+    {% for comment in comment_dict %}
+        <ul>
+            <li>{{ comment.comment }}</li>
+        </ul>
+    {% endfor %}
+{% endblock%}
