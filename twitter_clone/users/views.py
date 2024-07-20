@@ -80,3 +80,7 @@ def comments(request, user_id, object_id):
     }
 
     return HttpResponse(template.render(context, request))
+
+def main(request):
+    template = loader.get_template('main.html')
+    return HttpResponse(template.render())
