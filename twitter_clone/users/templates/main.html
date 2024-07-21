@@ -6,5 +6,13 @@
 
 {% block content %}
     <p><a href="/">HOME</a></p>
+
+    {% if user.is_authenticated %}
+        <p><a href="{% url 'user_logout' %}">LOG OUT</a></p>
+    {% else %}
+        <p><a href="/register">REGISTER</a></p>
+        <p><a href="/login">LOG IN</a></p>
+    {% endif %}
+   
     <p><a href="/users">Users</a></p>
-{% endblock%}
+{% endblock %}

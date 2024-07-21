@@ -1,0 +1,18 @@
+{% extends "master.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block content %}
+    <h1> Register </h1>
+    <form method="POST" autocomplete="off">
+
+        {% csrf_token %}
+
+        {{ registerform.as_p }}
+
+        <button type="submit">Register</button>
+
+    </form>
+{% endblock%}

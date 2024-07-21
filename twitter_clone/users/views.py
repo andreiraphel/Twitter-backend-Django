@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import loader
 from .models import User
@@ -6,8 +6,56 @@ from tweets.models import Tweet
 from likes.models import Like
 from comments.models import Comment
 from followers.models import Follow
+from .forms import CreateUserForm, LoginForm
+from django.contrib.auth.models import auth
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
-# Create your views here.
+def register(request):
+    form = CreateUserForm()
+
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect("login")
+
+    template = loader.get_template('register.html')
+    context = {
+        'registerform': form,
+    }
+
+    return HttpResponse(template.render(context, request))
+
+def login_view(request):
+    form = LoginForm()
+
+    if request.method == 'POST':
+        form = LoginForm(request, data=request.POST)
+
+        if form.is_valid():
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                auth.login(request, user)
+                return redirect("main")
+                
+    template = loader.get_template('login.html')
+    context = {
+        'loginform': form,
+    }
+
+    return HttpResponse(template.render(context, request))
+
+def user_logout(request):
+    auth.logout(request)
+    return redirect("login")
+
+@login_required(login_url="login")
 def users(request):
     myusers = User.objects.all().values()
     template = loader.get_template('all_users.html')
@@ -18,6 +66,7 @@ def users(request):
 
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url="login")
 def details(request, user_id):
     myuser = User.objects.get(id=user_id)
     tweets = Tweet.objects.filter(user_id=myuser.id)
@@ -48,6 +97,7 @@ def details(request, user_id):
 
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url="login")
 def liked(request, user_id, object_id):
     myusers = User.objects.all().values()
     likes = Like.objects.filter(tweet_id=object_id).values()
@@ -66,6 +116,7 @@ def liked(request, user_id, object_id):
 
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url="login")
 def comments(request, user_id, object_id):
     myusers = User.objects.all().values()
     comment_dict = Comment.objects.filter(tweet_id=object_id).values()
@@ -81,6 +132,6 @@ def comments(request, user_id, object_id):
 
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url="login")
 def main(request):
-    template = loader.get_template('main.html')
-    return HttpResponse(template.render())
+    return render(request, 'main.html')
