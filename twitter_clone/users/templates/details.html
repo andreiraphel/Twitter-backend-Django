@@ -6,6 +6,8 @@
 {% endblock %}
 
 {% block content %}
+    <p>Back to <a href="/">Home</a></p>
+
     <h1> {{ myuser.username }} </h1>
     <h2> {{ myuser.first_name }} {{ myuser.last_name }} </h2>
     <p>Following: {{ following_count }} Followers: {{ followers_count }}</p>
@@ -16,11 +18,18 @@
     {% if tweets %}
     <h1>--------------TWEETS-------------------</h1>
         {% for tweet in tweets %}
+            <form method="POST" action="{% url 'main' %}" onsubmit="return confirm('Are you sure you want to delete this tweet?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_tweet">
+                <input type="hidden" name="tweet_id" value="{{ tweet.id }}">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="submit" id="delete-button" value="Delete">
+            </form>
 
             <h2>{{ tweet.tweet }} - {{ tweet.tweet_created }}</h2>
             <p>Likes: <a href="{{ myuser.id }}/{{ tweet.id }}/likes">{{ tweet_likes|get_item:tweet.id }}</a> Comments: <a href="{{ myuser.id }}/{{ tweet.id }}/comments">{{ comment_counter|get_item:tweet.id}}</a></p>
         {% endfor %}
     {% endif%}
 
-    <p>Back to <a href="/users">Users</a></p>
+
 {% endblock%}

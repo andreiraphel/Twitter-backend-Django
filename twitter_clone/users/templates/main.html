@@ -1,18 +1,75 @@
 {% extends "master.html" %}
+{% load custom_filters %}
 
 {% block title %}
     Twitter
 {% endblock %}
 
-{% block content %}
-    <p><a href="/">HOME</a></p>
+{% block style %}
+    <style>
+        ul {
+            display: flex;
+            list-style-type: none;
+            text-align: center;
+            margin: auto;
+            width: fit-content;
+        }
 
-    {% if user.is_authenticated %}
-        <p><a href="{% url 'user_logout' %}">LOG OUT</a></p>
-    {% else %}
-        <p><a href="/register">REGISTER</a></p>
-        <p><a href="/login">LOG IN</a></p>
-    {% endif %}
-   
-    <p><a href="/users">Users</a></p>
+        li {
+            float: left;
+            margin-inline: 5px;
+        }
+
+        div {
+            margin: auto;
+            width: fit-content;
+            padding: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <ul>
+        <li><a href="/">HOME</a></li>
+
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'user_logout' %}">LOG OUT</a></li>
+        {% else %}
+            <li><a href="/register">REGISTER</a></li>
+            <li><a href="/login">LOG IN</a></li>
+        {% endif %}
+        <li><a href="/users/details/{{ user.id }}">Profile</a></li>
+    </ul>
+
+    <div>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_tweet">
+            <input type="text" id="tweet" name="tweet" placeholder="What is happening?!" required><br>
+            <input type="submit" id="submit-button" value="Tweet">
+        </form>
+        
+    </div>
+
+    
+    {% if tweets %}
+        <div>
+            {% for tweet in tweets %}
+            <form method="POST" action="{% url 'main' %}" onsubmit="return confirm('Are you sure you want to delete this tweet?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_tweet">
+                <input type="hidden" name="tweet_id" value="{{ tweet.id }}">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="submit" id="delete-button" value="Delete">
+            </form>
+            
+                
+                
+
+                <h2>{{ tweet.tweet }} - {{ tweet.tweet_created }}</h2>
+                <p>Likes: <a href="{{ myuser.id }}/{{ tweet.id }}/likes">{{ tweet_likes|get_item:tweet.id }}</a> Comments: <a href="{{ myuser.id }}/{{ tweet.id }}/comments">{{ comment_counter|get_item:tweet.id}}</a></p>
+            {% endfor %}
+        </div>
+    {% endif%}
+
 {% endblock %}

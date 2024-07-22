@@ -73,6 +73,14 @@ def details(request, user_id):
     following = Follow.objects.filter(user_id=myuser.id)
     followers = Follow.objects.filter(followed_user=myuser.id)
 
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'delete_tweet':
+            tweet_id = request.POST.get('tweet_id')
+            Tweet.objects.filter(id=tweet_id).delete()
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
+
     following_count = following.count()
     followers_count = followers.count()
 
@@ -134,4 +142,42 @@ def comments(request, user_id, object_id):
 
 @login_required(login_url="login")
 def main(request):
-    return render(request, 'main.html')
+    following = Follow.objects.filter(user_id=request.user.id)
+
+    following_ids = [follow.followed_user_id for follow in following]
+
+    following_tweets = Tweet.objects.filter(user_id__in=following_ids)
+    my_tweets = Tweet.objects.filter(user_id=request.user.id)
+
+    all_tweets = (following_tweets | my_tweets).order_by('tweet_created')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create_tweet':
+            tweet = request.POST.get('tweet')
+            new_tweet = Tweet(user_id=request.user.id, tweet=tweet)
+            new_tweet.save()
+            return redirect("main")
+
+        elif action == 'delete_tweet':
+            tweet_id = request.POST.get('tweet_id')
+            Tweet.objects.filter(id=tweet_id).delete()
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
+
+
+    comment_counter = {}
+    tweet_likes = {}
+
+    for tweet in all_tweets:
+        tweet_likes[tweet.id] = Like.objects.filter(tweet_id=tweet.id).count()
+        comment_counter[tweet.id] = Comment.objects.filter(tweet_id=tweet.id).count()
+
+    context = {
+        'tweets': all_tweets,
+        'tweet_likes': tweet_likes,
+        'comment_counter': comment_counter,
+    }
+
+    return render(request, 'main.html', context=context)
