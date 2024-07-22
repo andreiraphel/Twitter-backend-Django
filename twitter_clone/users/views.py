@@ -67,8 +67,8 @@ def users(request):
     return HttpResponse(template.render(context, request))
 
 @login_required(login_url="login")
-def details(request, user_id):
-    myuser = User.objects.get(id=user_id)
+def details(request, username):
+    myuser = User.objects.get(username=username)
     tweets = Tweet.objects.filter(user_id=myuser.id)
     following = Follow.objects.filter(user_id=myuser.id)
     followers = Follow.objects.filter(followed_user=myuser.id)
@@ -106,7 +106,7 @@ def details(request, user_id):
     return HttpResponse(template.render(context, request))
 
 @login_required(login_url="login")
-def liked(request, user_id, object_id):
+def liked(request, username, object_id):
     myusers = User.objects.all().values()
     likes = Like.objects.filter(tweet_id=object_id).values()
 
@@ -119,13 +119,13 @@ def liked(request, user_id, object_id):
     
     context = {
         'users_liked_list': users_liked_list,
-        'user_id': user_id,
+        'username': username,
     }
 
     return HttpResponse(template.render(context, request))
 
 @login_required(login_url="login")
-def comments(request, user_id, object_id):
+def comments(request, username, object_id):
     myusers = User.objects.all().values()
     comment_dict = Comment.objects.filter(tweet_id=object_id).values()
 
@@ -135,7 +135,7 @@ def comments(request, user_id, object_id):
 
     context = {
         'comment_dict': comment_dict,
-        'user_id': user_id,
+        'username': username,
     }
 
     return HttpResponse(template.render(context, request))
@@ -148,6 +148,7 @@ def main(request):
 
     following_tweets = Tweet.objects.filter(user_id__in=following_ids)
     my_tweets = Tweet.objects.filter(user_id=request.user.id)
+    users = User.objects.filter(id__in=following_ids)
 
     all_tweets = (following_tweets | my_tweets).order_by('tweet_created')
 
@@ -178,6 +179,7 @@ def main(request):
         'tweets': all_tweets,
         'tweet_likes': tweet_likes,
         'comment_counter': comment_counter,
+        'users': users,
     }
 
     return render(request, 'main.html', context=context)
