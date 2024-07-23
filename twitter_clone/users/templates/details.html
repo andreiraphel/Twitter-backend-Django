@@ -54,7 +54,7 @@
             {% endif %}
 
             <h2>{{ tweet.tweet }} - {{ tweet.tweet_created }}</h2>
-            <p>Likes: <a href="{{ myuser.username }}/{{ tweet.id }}/likes">{{ tweet_likes|get_item:tweet.id }}</a> Comments: <a href="{{ myuser.id }}/{{ tweet.id }}/comments">{{ comment_counter|get_item:tweet.id}}</a></p>
+            <p>Likes: <a href="/{{ tweet.id }}/likes">{{ tweet_likes|get_item:tweet.id }}</a> Comments: <a href="/{{ tweet.id }}/comments">{{ comment_counter|get_item:tweet.id}}</a></p>
         {% endfor %}
     {% endif%}
 

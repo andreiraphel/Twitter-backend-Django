@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.template import loader
 from .models import User
@@ -68,7 +68,8 @@ def users(request):
 
 @login_required(login_url="login")
 def details(request, username):
-    myuser = User.objects.get(username=username)
+    
+    myuser = get_object_or_404(User, username=username)
 
     tweets = Tweet.objects.filter(user_id=myuser.id)
     following = Follow.objects.filter(user_id=myuser.id)
@@ -79,6 +80,7 @@ def details(request, username):
     following_ids = [follow.followed_user_id for follow in logged_in_following]
     print(myuser.id)
     print(following_ids)
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'delete_tweet':
@@ -126,7 +128,7 @@ def details(request, username):
     return render(request, 'details.html', context=context)
 
 @login_required(login_url="login")
-def liked(request, username, object_id):
+def liked(request, object_id):
     myusers = User.objects.all().values()
     likes = Like.objects.filter(tweet_id=object_id).values()
 
@@ -134,18 +136,15 @@ def liked(request, username, object_id):
     users_liked_id = [x['user_id'] for x in likes]
 
     users_liked_list = [user for user in myusers if user['id'] in users_liked_id]
-
-    print(users_liked_list)
     
     context = {
         'users_liked_list': users_liked_list,
-        'username': username,
     }
 
     return HttpResponse(template.render(context, request))
 
 @login_required(login_url="login")
-def comments(request, username, object_id):
+def comments(request, object_id):
     myusers = User.objects.all().values()
     comment_dict = Comment.objects.filter(tweet_id=object_id).values()
 
@@ -155,7 +154,6 @@ def comments(request, username, object_id):
 
     context = {
         'comment_dict': comment_dict,
-        'username': username,
     }
 
     return HttpResponse(template.render(context, request))
@@ -169,6 +167,7 @@ def home(request):
     following_tweets = Tweet.objects.filter(user_id__in=following_ids)
     my_tweets = Tweet.objects.filter(user_id=request.user.id)
     users = User.objects.filter(id__in=following_ids)
+    liked_tweet_ids = Like.objects.filter(user_id=request.user.id).values_list('tweet_id', flat=True)
 
     all_tweets = (following_tweets | my_tweets).order_by('tweet_created')
     if request.method == 'POST':
@@ -202,7 +201,20 @@ def home(request):
             next_url = request.POST.get('next', '/')
             return redirect(next_url)
 
+        elif action == 'like':
+            tweet_id = request.POST.get('tweet_id')
+            new_like = Like(user_id=request.user.id, tweet_id=tweet_id)
+            new_like.save()
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
 
+        elif action == 'unlike':
+            tweet_id = request.POST.get('tweet_id')
+            Like.objects.filter(user_id=request.user.id, tweet_id=tweet_id).delete()
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
+
+    
     comment_counter = {}
     tweet_likes = {}
 
@@ -216,6 +228,7 @@ def home(request):
         'comment_counter': comment_counter,
         'users': users,
         'following_ids': following_ids,
+        'liked_tweet_ids': liked_tweet_ids,
     }
 
     return render(request, 'home.html', context=context)

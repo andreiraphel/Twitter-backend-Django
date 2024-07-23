@@ -10,7 +10,7 @@
 
     <ul>
         {% for x in myusers %}
-            <li><a href="/details/{{ x.username }}">{{ x.first_name }} {{ x.last_name }}</a></li>
+            <li><a href="/{{ x.username }}">{{ x.first_name }} {{ x.last_name }}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}

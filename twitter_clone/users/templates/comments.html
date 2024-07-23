@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-    <p><a href="/users/details/{{ username }}">Back</a></p>
+    <p><a href="{{ username }}">Back</a></p>
 
     {% for comment in comment_dict %}
         <ul>
