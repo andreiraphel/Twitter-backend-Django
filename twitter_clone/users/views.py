@@ -161,7 +161,7 @@ def comments(request, username, object_id):
     return HttpResponse(template.render(context, request))
 
 @login_required(login_url="login")
-def main(request):
+def home(request):
     following = Follow.objects.filter(user_id=request.user.id)
 
     following_ids = [follow.followed_user_id for follow in following]
@@ -178,7 +178,7 @@ def main(request):
             tweet = request.POST.get('tweet')
             new_tweet = Tweet(user_id=request.user.id, tweet=tweet)
             new_tweet.save()
-            return redirect("main")
+            return redirect("home")
 
         elif action == 'delete_tweet':
             tweet_id = request.POST.get('tweet_id')
@@ -218,4 +218,7 @@ def main(request):
         'following_ids': following_ids,
     }
 
-    return render(request, 'main.html', context=context)
+    return render(request, 'home.html', context=context)
+
+def main(request):
+    return redirect("home")
