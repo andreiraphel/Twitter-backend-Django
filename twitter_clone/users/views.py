@@ -69,15 +69,37 @@ def users(request):
 @login_required(login_url="login")
 def details(request, username):
     myuser = User.objects.get(username=username)
+
     tweets = Tweet.objects.filter(user_id=myuser.id)
     following = Follow.objects.filter(user_id=myuser.id)
     followers = Follow.objects.filter(followed_user=myuser.id)
 
+    logged_in_following = Follow.objects.filter(user=request.user.id)
+
+    following_ids = [follow.followed_user_id for follow in logged_in_following]
+    print(myuser.id)
+    print(following_ids)
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'delete_tweet':
             tweet_id = request.POST.get('tweet_id')
             Tweet.objects.filter(id=tweet_id).delete()
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
+
+        elif action == 'follow':
+            user_id = request.POST.get('user_id')
+            follower_new_user = Follow(user_id=request.user.id, followed_user_id=user_id)
+            follower_new_user.save()
+
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
+
+        elif action == 'unfollow':
+            user_id = request.POST.get('user_id')
+            unfollow_user = Follow.objects.filter(user_id=request.user.id, followed_user_id=user_id)
+            unfollow_user.delete()
+
             next_url = request.POST.get('next', '/')
             return redirect(next_url)
 
@@ -90,9 +112,6 @@ def details(request, username):
     for tweet in tweets:
         tweet_likes[tweet.id] = Like.objects.filter(tweet_id=tweet.id).count()
         comment_counter[tweet.id] = Comment.objects.filter(tweet_id=tweet.id).count()
-
-    print(followers_count)
-    template = loader.get_template('details.html')
     
     context = {
         'myuser': myuser,
@@ -101,9 +120,10 @@ def details(request, username):
         'comment_counter': comment_counter,
         'followers_count': followers_count,
         'following_count': following_count,
+        'following_ids': following_ids,
     }
 
-    return HttpResponse(template.render(context, request))
+    return render(request, 'details.html', context=context)
 
 @login_required(login_url="login")
 def liked(request, username, object_id):
@@ -151,7 +171,6 @@ def main(request):
     users = User.objects.filter(id__in=following_ids)
 
     all_tweets = (following_tweets | my_tweets).order_by('tweet_created')
-
     if request.method == 'POST':
         action = request.POST.get('action')
         
@@ -164,6 +183,22 @@ def main(request):
         elif action == 'delete_tweet':
             tweet_id = request.POST.get('tweet_id')
             Tweet.objects.filter(id=tweet_id).delete()
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
+
+        elif action == 'follow':
+            user_id = request.POST.get('user_id')
+            follower_new_user = Follow(user_id=request.user.id, followed_user_id=user_id)
+            follower_new_user.save()
+
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
+
+        elif action == 'unfollow':
+            user_id = request.POST.get('user_id')
+            unfollow_user = Follow.objects.filter(followed_user_id=user_id)
+            unfollow_user.delete()
+
             next_url = request.POST.get('next', '/')
             return redirect(next_url)
 
@@ -180,6 +215,7 @@ def main(request):
         'tweet_likes': tweet_likes,
         'comment_counter': comment_counter,
         'users': users,
+        'following_ids': following_ids,
     }
 
     return render(request, 'main.html', context=context)

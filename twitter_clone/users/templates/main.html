@@ -82,12 +82,33 @@
                         </form>
                         
                     {% else %}
-
                         {% for user in users %}
                             {% if tweet.user_id == user.id %}
                                 <h2>{{ user.first_name }} {{ user.last_name }}</h2>
-                                
-                            {% endif%}
+
+                                {% if user.id in following_ids %}
+
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="unfollow">
+                                        <input type="hidden" name="user_id" value="{{ tweet.user_id }}">
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <input type="submit" id="unfollow-button" value="Unfollow">
+                                    </form>
+
+
+                                {% else %}
+
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="follow">
+                                        <input type="hidden" name="user_id" value="{{ tweet.user_id }}">
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <input type="submit" id="follow-button" value="Follow">
+                                    </form>                                
+                                    
+                                {% endif %}
+                            {% endif %}
                         {% endfor %}
 
                     {% endif %}
