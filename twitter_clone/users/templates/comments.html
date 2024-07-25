@@ -5,13 +5,64 @@
 {% endblock %}
 
 {% block content %}
-    <p><a href="{{ username }}">Back</a></p>
 
-    {% for comment in comment_dict %}
-        <ul>
-            <li>{{ comment.comment }}</li>
-        </ul>
-    {% endfor %}
+    <p><a href="/home">Back</a></p>
+
+    <div>
+        <div>
+            {% for x in tweet %}
+                <h1>{{ x.tweet }}</h1>
+            {% endfor %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_comment">
+                <input type="text" id="comment" name="comment" placeholder="Comment" required><br>
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="submit" id="submit-button" value="Comment">
+            </form>
+
+        </div>
+
+        <div>
+            {% for comment in comment_dict %}
+                {% for other_user in users %}
+                    {% if comment.user_id == other_user.id %}
+                        <div>
+                            <h2> {{ other_user.first_name }} {{ other_user.last_name }}</h2>
+
+                            {% if comment.user_id == user.id %}
+                                
+                            {% elif other_user.id in following_ids %}
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="unfollow">
+                                    <input type="hidden" name="user_id" value="{{ tweet.user_id }}">
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <input type="submit" id="unfollow-button" value="Unfollow">
+                                </form>
+
+
+                            {% else %}
+
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="follow">
+                                    <input type="hidden" name="user_id" value="{{ tweet.user_id }}">
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <input type="submit" id="follow-button" value="Follow">
+                                </form>
+
+                            {% endif %}
+                            <p> {{ comment.comment }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %} 
+            {% endfor %}    
+
+            
+        </div>
+    </div>
 
     
 {% endblock%}

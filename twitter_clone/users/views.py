@@ -147,16 +147,35 @@ def liked(request, object_id):
 def comments(request, object_id):
     myusers = User.objects.all().values()
     comment_dict = Comment.objects.filter(tweet_id=object_id).values()
+    tweet = Tweet.objects.filter(id=object_id)
+    following = Follow.objects.filter(user_id=request.user.id)
+    user_likes = Like.objects.filter(user_id=request.user.id)
+    object_likes = Like.objects.filter(tweet=object_id).count()
 
+    following_ids = [follow.followed_user_id for follow in following]
 
-    print(comment_dict)
-    template = loader.get_template('comments.html')
+    user_likes_ids = [user_like.id for user_like in user_likes]
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create_comment':
+            comment = request.POST.get('comment')
+            new_comment = Comment(user_id=request.user.id, tweet_id=object_id, comment=comment)
+            new_comment.save()
+
+            next_url = request.POST.get('next', '/')
+            return redirect(next_url)
 
     context = {
         'comment_dict': comment_dict,
+        'tweet': tweet,
+        'users': myusers,
+        'following_ids': following_ids,
+        'object_likes': object_likes,
+        'user_likes': user_likes,
     }
 
-    return HttpResponse(template.render(context, request))
+    return render(request, 'comments.html', context=context)
 
 @login_required(login_url="login")
 def home(request):
